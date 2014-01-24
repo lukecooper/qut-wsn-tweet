@@ -27,16 +27,12 @@
   (trim (:out (sh "hostname"))))
 
 (defn ip-addr
-  "Returns the IPv4 address for the given hostname using mDNS. Ensure the
-   avahi-utils package is installed."
-  [hostname]
-  (second (split (:out (sh "avahi-resolve-host-name" (str hostname ".local") "-4")) #"\s+")))
+  []
+  (trim (:out (sh "hostname" "-I"))))
 
 (defn host-address
   []
-  (let [host (hostname)
-        addr (ip-addr host)]
-    (format "%s %s" host addr)))
+  (format "%s %s" (hostname) (ip-addr)))
 
 (defn tweet
   "Posts a text tweet using the given OAuth credentials."
@@ -61,7 +57,7 @@
   [& args]
   (let [message (host-address)]
     (with-open [client (ac/create-client :follow-redirects false
-                                         :proxy {:host "localhost" :port 3128}
+                                         ; :proxy {:host "localhost" :port 3128}
                                          )]      
       (if-not (= message (get-last-tweet-text (:screen-name twitter-account) client))
         (tweet (host-address) client)))))
